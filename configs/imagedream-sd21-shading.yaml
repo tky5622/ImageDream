@@ -5,7 +5,7 @@ seed: 0
 
 data_type: "random-multiview-camera-datamodule"
 data:
-  batch_size: [8, 4, 4]
+  batch_size: [2, 2, 2]
   width: [64, 192, 256]
   height: [64, 192, 256]
   resolution_milestones: [5000, 10000]
@@ -45,7 +45,7 @@ system:
     textureless_prob: 0.5
     ambient_light_color: [1.0, 1.0, 1.0]
     diffuse_light_color: [0.0, 0.0, 0.0]
-    soft_shading: true
+    soft_shading: false
     albedo_activation: sigmoid
 
   background_type: "neural-environment-map-background"

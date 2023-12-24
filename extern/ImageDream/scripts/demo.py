@@ -15,6 +15,8 @@ from imagedream.ldm.util import (
 from imagedream.ldm.models.diffusion.ddim import DDIMSampler
 from imagedream.model_zoo import build_model
 from torchvision import transforms as T
+import cv2
+from rembg import remove
 
 def i2i(
     model,
@@ -223,9 +225,40 @@ if __name__ == "__main__":
     ip = add_random_background(ip)
 
     image_dream = ImageDreamDiffusion(args)
-    images = image_dream.diffuse(t, ip, n_test=3)
+    images = image_dream.diffuse(t, ip, n_test=1)
     
     name = os.path.basename(args.image).split(".")[0]
-    images = np.concatenate(images, 0)
-    Image.fromarray(images).save(f"{name}_{args.mode}_dream.png")
+    # images = np.concatenate(images, 0)
+    # usual output is concatenated images
+    # this split pixels for making four images 
+    splitted_images = np.array_split(images[0], 4, axis=1)
+    # import pdb
+    # pdb.set_trace()
 
+    # Image.fromarray(images).save(f"{name}_{args.mode}_dream.png")
+    
+    # images = np.concatenate(images, 0)
+    
+    os.makedirs("remove_bg", exist_ok=True)
+    for idx, image in enumerate(splitted_images):
+        Image.fromarray(image).save(f"{name}_{args.mode}_dream_{idx}.png")
+
+
+    # step 6 : remove bg
+    threshold = 128
+    for i in range(4):
+        input_path = f'{name}_{args.mode}_dream_{i}.png'
+        output_path = f'remove_bg/{name}_{args.mode}_dream_{(i+1)%4}.png'
+        output_path2 = f'remove_bg/{name}_{args.mode}_dream_{i}.png'
+
+        input_img = cv2.imread(input_path)
+        output = remove(input_img)
+        output = np.array(output)
+
+        condition = output[:, :, 3] <= threshold
+        output[condition, :3] = 255
+                
+        cv2.imwrite(output_path, output[:, :, :3])
+        cv2.imwrite(output_path2, output[:, :, :3])
+
+        # os.remove(input_path)
